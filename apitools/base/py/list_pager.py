@@ -17,7 +17,6 @@
 """A helper function that executes a series of List queries for many APIs."""
 
 from apitools.base.py import encoding
-import six
 
 __all__ = [
     'YieldFromList',
@@ -33,7 +32,7 @@ def _GetattrNested(message, attribute):
 
     (ex _GetattrNested(msg, ('foo', 'bar', 'baz')) gets msg.foo.bar.baz
     """
-    if isinstance(attribute, six.string_types):
+    if isinstance(attribute, str):
         return getattr(message, attribute)
     elif len(attribute) == 0:
         return message
@@ -51,7 +50,7 @@ def _SetattrNested(message, attribute, value):
     (ex _SetattrNested(msg, ('foo', 'bar', 'baz'), 'v') sets msg.foo.bar.baz
     to 'v'
     """
-    if isinstance(attribute, six.string_types):
+    if isinstance(attribute, str):
         return setattr(message, attribute, value)
     elif len(attribute) < 1:
         raise ValueError("Need an attribute to set")

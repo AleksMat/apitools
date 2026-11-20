@@ -21,8 +21,6 @@ import collections
 import datetime
 import json
 
-import six
-
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
 from apitools.base.protorpclite import protojson
@@ -223,7 +221,7 @@ def MessageToRepr(msg, multiline=False, **kwargs):
         s += ')'
         return s
 
-    if isinstance(msg, six.string_types):
+    if isinstance(msg, str):
         if kwargs.get('shortstrings') and len(msg) > 100:
             msg = msg[:100]
 
@@ -336,7 +334,7 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
                 field_value = super(
                     _ProtoJsonApiTools, self).decode_field(field, value)
             except messages.DecodeError:
-                if not isinstance(value, six.string_types):
+                if not isinstance(value, str):
                     raise
                 field_value = None
         else:
@@ -419,7 +417,7 @@ def _DecodeUnknownMessages(message, encoded_message, pair_type):
     field_type = pair_type.value.type
     new_values = []
     all_field_names = [x.name for x in message.all_fields()]
-    for name, value_dict in six.iteritems(encoded_message):
+    for name, value_dict in encoded_message.items():
         if name in all_field_names:
             continue
         value = PyValueToMessage(field_type, value_dict)
@@ -528,7 +526,7 @@ def _ProcessUnknownEnums(message, encoded_message):
     """
     if not encoded_message:
         return message
-    decoded_message = json.loads(six.ensure_str(encoded_message))
+    decoded_message = json.loads(encoded_message)
     for field in message.all_fields():
         if (isinstance(field, messages.EnumField) and
                 field.name in decoded_message):
@@ -558,7 +556,7 @@ def _ProcessUnknownMessages(message, encoded_message):
     """
     if not encoded_message:
         return message
-    decoded_message = json.loads(six.ensure_str(encoded_message))
+    decoded_message = json.loads(encoded_message)
     message_fields = [x.name for x in message.all_fields()] + list(
         message.all_unrecognized_fields())
     missing_fields = [x for x in decoded_message.keys()

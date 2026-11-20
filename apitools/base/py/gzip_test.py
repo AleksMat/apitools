@@ -9,15 +9,13 @@
 """Test script for the gzip module.
 """
 
-import six
-from six.moves import range
-
-import unittest
-import os
 import io
-import struct
-from apitools.base.py import gzip
 from io import open
+import os
+import struct
+import unittest
+
+from apitools.base.py import gzip
 
 data1 = b"""  int length=DEFAULTALLOC, err = Z_OK;
   PyObject *RetVal;
@@ -97,12 +95,8 @@ class TestGzip(BaseTest):
         # Issue #21560: attempts to write incompatible types
         # should not affect the state of the fileobject
         with gzip.GzipFile(self.filename, 'wb') as f:
-            if six.PY2:
-                with self.assertRaises(UnicodeEncodeError):
-                    f.write(u'\xff')
-            elif six.PY3:
-                with self.assertRaises(TypeError):
-                    f.write(u'\xff')
+            with self.assertRaises(TypeError):
+                f.write('\xff')
             with self.assertRaises(TypeError):
                 f.write([1])
             f.write(data1)

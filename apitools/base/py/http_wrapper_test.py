@@ -14,12 +14,12 @@
 # limitations under the License.
 
 """Tests for http_wrapper."""
+from http import client as http_client
 import socket
 import unittest
 from unittest import mock
 
 import httplib2
-from six.moves import http_client
 
 from apitools.base.py import exceptions
 from apitools.base.py import http_wrapper

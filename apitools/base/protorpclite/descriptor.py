@@ -96,8 +96,6 @@ Public Functions:
 import codecs
 import types
 
-import six
-
 from apitools.base.protorpclite import messages
 from apitools.base.protorpclite import util
 
@@ -130,12 +128,12 @@ __all__ = [
 # to a string.  The function must return a value that is compatible with
 # FieldDescriptor.default_value and therefore a unicode string.
 _DEFAULT_TO_STRING_MAP = {
-    messages.IntegerField: six.text_type,
-    messages.FloatField: six.text_type,
+    messages.IntegerField: str,
+    messages.FloatField: str,
     messages.BooleanField: lambda value: value and u'true' or u'false',
     messages.BytesField: lambda value: codecs.escape_encode(value)[0],
     messages.StringField: lambda value: value,
-    messages.EnumField: lambda value: six.text_type(value.number),
+    messages.EnumField: lambda value: str(value.number),
 }
 
 _DEFAULT_FROM_STRING_MAP = {
@@ -274,7 +272,7 @@ def describe_enum_value(enum_value):
       Initialized EnumValueDescriptor instance describing the Enum instance.
     """
     enum_value_descriptor = EnumValueDescriptor()
-    enum_value_descriptor.name = six.text_type(enum_value.name)
+    enum_value_descriptor.name = str(enum_value.name)
     enum_value_descriptor.number = enum_value.number
     return enum_value_descriptor
 

@@ -20,8 +20,6 @@ import collections
 import contextlib
 import json
 
-import six
-
 from apitools.base.protorpclite import descriptor
 from apitools.base.protorpclite import messages
 from apitools.gen import extended_descriptor
@@ -130,7 +128,7 @@ class MessageRegistry(object):
             raise ValueError('Malformed MessageRegistry: %s' % mysteries)
 
     def __ComputeFullName(self, name):
-        return '.'.join(map(six.text_type, self.__current_path[:] + [name]))
+        return '.'.join(map(str, self.__current_path[:] + [name]))
 
     def __AddImport(self, new_import):
         if new_import not in self.__file_descriptor.additional_imports:

@@ -31,7 +31,6 @@ REQUIRED_PACKAGES = [
     'httplib2>=0.8',
     'fasteners>=0.14',
     'oauth2client>=1.4.12',
-    'six>=1.12.0',
     ]
 
 CLI_PACKAGES = [
@@ -59,7 +58,7 @@ setuptools.setup(
     url='http://github.com/google/apitools',
     author='Craig Citro',
     author_email='craigcitro@google.com',
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
+    python_requires='>=3.11',
     # Contained modules and scripts.
     packages=setuptools.find_packages(include=['apitools']),
     entry_points={'console_scripts': CONSOLE_SCRIPTS},
@@ -86,10 +85,7 @@ setuptools.setup(
     # PyPI package information.
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Topic :: Software Development :: Libraries',
         'Topic :: Software Development :: Libraries :: Python Modules',
         ],

@@ -15,10 +15,9 @@
 
 """Tests for buffered_stream."""
 
+import io
 import string
 import unittest
-
-import six
 
 from apitools.base.py import buffered_stream
 from apitools.base.py import exceptions
@@ -27,7 +26,7 @@ from apitools.base.py import exceptions
 class BufferedStreamTest(unittest.TestCase):
 
     def setUp(self):
-        self.stream = six.StringIO(string.ascii_letters)
+        self.stream = io.StringIO(string.ascii_letters)
         self.value = self.stream.getvalue()
         self.stream.seek(0)
 

@@ -19,13 +19,12 @@ These tests exercise most of the corner cases for upload/download of
 files in apitools, via GCS. There are no performance tests here yet.
 """
 
+import io
 import json
 import os
 import random
 import string
 import unittest
-
-import six
 
 from apitools.base.py import transfer
 import storage
@@ -57,7 +56,7 @@ class UploadsTest(unittest.TestCase):
     def __ResetUpload(self, size, auto_transfer=True):
         self.__content = ''.join(
             random.choice(string.ascii_letters) for _ in range(size))
-        self.__buffer = six.StringIO(self.__content)
+        self.__buffer = io.StringIO(self.__content)
         self.__upload = storage.Upload.FromStream(
             self.__buffer, 'text/plain', auto_transfer=auto_transfer)
 

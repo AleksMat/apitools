@@ -14,14 +14,12 @@
 # limitations under the License.
 
 import base64
-import datetime
-import sys
 import contextlib
+import datetime
+from http import client as http_client
+import sys
 import unittest
-
-import six
-from six.moves import http_client
-from six.moves import urllib_parse
+from urllib import parse as urllib_parse
 
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
@@ -261,8 +259,7 @@ class BaseApiTest(unittest.TestCase):
         method_config = base_api.ApiMethodInfo(
             request_type_name='SimpleMessage', query_params=['bytes_field'])
         service = FakeService()
-        non_unicode_message = b''.join((six.int2byte(100),
-                                        six.int2byte(200)))
+        non_unicode_message = bytes((100, 200))
         request = SimpleMessage(bytes_field=non_unicode_message)
         global_params = StandardQueryParameters()
         http_request = service.PrepareHttpRequest(method_config, request,
@@ -276,8 +273,7 @@ class BaseApiTest(unittest.TestCase):
         method_config = base_api.ApiMethodInfo(
             request_type_name='SimpleMessage', query_params=['bytes_field'])
         service = FakeService()
-        non_unicode_message = b''.join((six.int2byte(100),
-                                        six.int2byte(200)))
+        non_unicode_message = bytes((100, 200))
         request = SimpleMessage()
         global_params = StandardQueryParameters(
             nextPageToken=non_unicode_message)

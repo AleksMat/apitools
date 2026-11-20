@@ -16,11 +16,10 @@
 
 """Extra types understood by apitools."""
 
+from collections.abc import Iterable
 import datetime
 import json
 import numbers
-
-import six
 
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
@@ -28,11 +27,6 @@ from apitools.base.protorpclite import protojson
 from apitools.base.py import encoding_helper as encoding
 from apitools.base.py import exceptions
 from apitools.base.py import util
-
-if six.PY3:
-    from collections.abc import Iterable
-else:
-    from collections import Iterable
 
 __all__ = [
     'DateField',
@@ -65,7 +59,7 @@ class _FieldMeta(messages._FieldMeta):
 # pylint: enable=protected-access
 
 
-class DateField(six.with_metaclass(_FieldMeta, messages.Field)):
+class DateField(messages.Field, metaclass=_FieldMeta):
 
     """Field definition for Date values."""
 
@@ -124,10 +118,10 @@ def _PythonValueToJsonValue(py_value):
         return JsonValue(is_null=True)
     if isinstance(py_value, bool):
         return JsonValue(boolean_value=py_value)
-    if isinstance(py_value, six.string_types):
+    if isinstance(py_value, str):
         return JsonValue(string_value=py_value)
     if isinstance(py_value, numbers.Number):
-        if isinstance(py_value, six.integer_types):
+        if isinstance(py_value, int):
             if _MININT64 < py_value < _MAXINT64:
                 return JsonValue(integer_value=py_value)
         return JsonValue(double_value=float(py_value))
@@ -217,7 +211,7 @@ def _PythonValueToJsonProto(py_value):
     if isinstance(py_value, dict):
         return _PythonValueToJsonObject(py_value)
     if (isinstance(py_value, Iterable) and
-            not isinstance(py_value, six.string_types)):
+            not isinstance(py_value, str)):
         return _PythonValueToJsonArray(py_value)
     return _PythonValueToJsonValue(py_value)
 

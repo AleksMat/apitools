@@ -31,8 +31,6 @@ import abc
 import operator
 import textwrap
 
-import six
-
 from apitools.base.protorpclite import descriptor as protorpc_descriptor
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
@@ -231,7 +229,7 @@ def _EmptyMessage(message_type):
                     message_type.fields))
 
 
-class ProtoPrinter(six.with_metaclass(abc.ABCMeta, object)):
+class ProtoPrinter(metaclass=abc.ABCMeta):
 
     """Interface for proto printers."""
 

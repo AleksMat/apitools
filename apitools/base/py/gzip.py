@@ -13,16 +13,13 @@ but random access is not allowed."""
 
 # based on Andrew Kuchling's minigzip.py distributed with the zlib module
 
-import six
-from six.moves import builtins
-from six.moves import range
-
+import builtins
+import io
+import os
 import struct
 import sys
 import time
-import os
 import zlib
-import io
 
 __all__ = ["GzipFile", "open", "compress", "decompress"]
 
@@ -163,7 +160,7 @@ class GzipFile(io.BufferedIOBase):
             fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
         if filename is None:
             filename = getattr(fileobj, 'name', '')
-            if not isinstance(filename, six.string_types):
+            if not isinstance(filename, str):
                 filename = ''
         if mode is None:
             mode = getattr(fileobj, 'mode', 'rb')
@@ -237,7 +234,7 @@ class GzipFile(io.BufferedIOBase):
             # RFC 1952 requires the FNAME field to be Latin-1. Do not
             # include filenames that cannot be represented that way.
             fname = os.path.basename(self.name)
-            if not isinstance(fname, six.binary_type):
+            if not isinstance(fname, bytes):
                 fname = fname.encode('latin-1')
             if fname.endswith(b'.gz'):
                 fname = fname[:-3]
@@ -246,7 +243,7 @@ class GzipFile(io.BufferedIOBase):
         flags = 0
         if fname:
             flags = FNAME
-        self.fileobj.write(six.unichr(flags).encode('latin-1'))
+        self.fileobj.write(chr(flags).encode('latin-1'))
         mtime = self.mtime
         if mtime is None:
             mtime = time.time()

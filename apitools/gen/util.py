@@ -25,11 +25,9 @@ import logging
 import os
 import re
 import tempfile
-
-import six
-from six.moves import urllib_parse
-import six.moves.urllib.error as urllib_error
-import six.moves.urllib.request as urllib_request
+from urllib import error as urllib_error
+from urllib import parse as urllib_parse
+from urllib import request as urllib_request
 
 
 class Error(Exception):
@@ -313,13 +311,12 @@ def ReplaceHomoglyphs(s):
 
 def CleanDescription(description):
     """Return a version of description safe for printing in a docstring."""
-    if not isinstance(description, six.string_types):
+    if not isinstance(description, str):
         return description
-    if six.PY3:
-        # https://docs.python.org/3/reference/lexical_analysis.html#index-18
-        description = description.replace('\\N', '\\\\N')
-        description = description.replace('\\u', '\\\\u')
-        description = description.replace('\\U', '\\\\U')
+    # https://docs.python.org/3/reference/lexical_analysis.html#index-18
+    description = description.replace('\\N', '\\\\N')
+    description = description.replace('\\u', '\\\\u')
+    description = description.replace('\\U', '\\\\U')
     description = ReplaceHomoglyphs(description)
     return description.replace('"""', '" " "')
 

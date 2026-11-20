@@ -15,13 +15,11 @@
 
 """Tests for apitools.base.py.batch."""
 
+from http import client as http_client
 import textwrap
 import unittest
 from unittest import mock
-
-from six.moves import http_client
-from six.moves import range  # pylint:disable=redefined-builtin
-from six.moves.urllib import parse
+from urllib import parse
 
 from apitools.base.py import batch
 from apitools.base.py import exceptions

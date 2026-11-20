@@ -16,12 +16,11 @@
 
 """Tests for compression."""
 
+import io
 import unittest
 
 from apitools.base.py import compression
 from apitools.base.py import gzip
-
-import six
 
 
 class CompressionTest(unittest.TestCase):
@@ -30,7 +29,7 @@ class CompressionTest(unittest.TestCase):
         # Sample highly compressible data (~50MB).
         self.sample_data = b'abc' * 16777216
         # Stream of the sample data.
-        self.stream = six.BytesIO()
+        self.stream = io.BytesIO()
         self.stream.write(self.sample_data)
         self.length = self.stream.tell()
         self.stream.seek(0)

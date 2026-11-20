@@ -28,8 +28,6 @@ import base64
 import binascii
 import logging
 
-import six
-
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
 from apitools.base.protorpclite import util
@@ -110,7 +108,7 @@ class MessageJSONEncoder(json.JSONEncoder):
         if isinstance(value, messages.Enum):
             return str(value)
 
-        if six.PY3 and isinstance(value, bytes):
+        if isinstance(value, bytes):
             return value.decode('utf8')
 
         if isinstance(value, messages.Message):
@@ -206,7 +204,11 @@ class ProtoJson(object):
           ValueError: If encoded_message is not valid JSON.
           messages.ValidationError if merged message is not initialized.
         """
-        encoded_message = six.ensure_str(encoded_message)
+        if isinstance(encoded_message, bytes):
+            encoded_message = encoded_message.decode('utf-8')
+        elif not isinstance(encoded_message, str):
+            raise TypeError(
+                "not expecting type '%s'" % type(encoded_message))
         if not encoded_message.strip():
             return message_type()
 
@@ -228,11 +230,11 @@ class ProtoJson(object):
         """
         if isinstance(value, bool):
             return messages.Variant.BOOL
-        elif isinstance(value, six.integer_types):
+        elif isinstance(value, int):
             return messages.Variant.INT64
         elif isinstance(value, float):
             return messages.Variant.DOUBLE
-        elif isinstance(value, six.string_types):
+        elif isinstance(value, str):
             return messages.Variant.STRING
         elif isinstance(value, (list, tuple)):
             # Find the most specific variant that covers all elements.
@@ -262,7 +264,7 @@ class ProtoJson(object):
             is as parsed from JSON.  Nested objects will also be dictionaries.
         """
         message = message_type()
-        for key, value in six.iteritems(dictionary):
+        for key, value in dictionary.items():
             if value is None:
                 try:
                     message.reset(key)
@@ -355,14 +357,14 @@ class ProtoJson(object):
             return self.__decode_dictionary(field.type, value)
 
         elif (isinstance(field, messages.FloatField) and
-              isinstance(value, (six.integer_types, six.string_types))):
+              isinstance(value, (int, str))):
             try:
                 return float(value)
             except:  # pylint:disable=bare-except
                 pass
 
         elif (isinstance(field, messages.IntegerField) and
-              isinstance(value, six.string_types)):
+              isinstance(value, str)):
             try:
                 return int(value)
             except:  # pylint:disable=bare-except

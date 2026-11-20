@@ -22,14 +22,13 @@ currently httplib2.
 
 import collections
 import contextlib
+from http import client as http_client
 import logging
 import socket
 import time
+from urllib import parse
 
 import httplib2
-import six
-from six.moves import http_client
-from six.moves.urllib import parse
 
 from apitools.base.py import exceptions
 from apitools.base.py import util
@@ -155,7 +154,7 @@ class Request(object):
         else:
             self.headers.pop('content-length', None)
         # This line ensures we don't try to print large requests.
-        if not isinstance(value, (type(None), six.string_types)):
+        if not isinstance(value, (type(None), str)):
             self.loggable_body = '<media body>'
 
 

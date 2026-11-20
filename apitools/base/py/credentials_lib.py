@@ -15,14 +15,17 @@
 # limitations under the License.
 
 """Common credentials classes and constructors."""
-from __future__ import print_function
 
 import argparse
 import contextlib
 import datetime
+from http import client as http_client
 import json
 import os
 import threading
+import urllib.error
+import urllib.parse
+import urllib.request
 import warnings
 
 import httplib2
@@ -30,9 +33,6 @@ import oauth2client
 import oauth2client.client
 from oauth2client import service_account
 from oauth2client import tools  # for gflags declarations
-import six
-from six.moves import http_client
-from six.moves import urllib
 
 from apitools.base.py import exceptions
 from apitools.base.py import util
@@ -210,6 +210,14 @@ def ServiceAccountCredentialsFromP12File(
                 user_agent=user_agent)
 
 
+def _EnsureStr(value, encoding='utf-8'):
+    if isinstance(value, bytes):
+        return value.decode(encoding)
+    if isinstance(value, str):
+        return value
+    raise TypeError("not expecting type '%s'" % type(value))
+
+
 def _GceMetadataRequest(relative_url, use_metadata_ip=False):
     """Request the given url from the GCE metadata service."""
     if use_metadata_ip:
@@ -251,9 +259,9 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
         # identified these scopes in the same execution. However, the
         # available scopes don't change once an instance is created,
         # so there is no reason to perform more than one query.
-        self.__service_account_name = six.ensure_text(
+        self.__service_account_name = _EnsureStr(
             service_account_name,
-            encoding='utf-8',)
+            encoding='utf-8')
         cached_scopes = None
         cache_filename = kwds.get('cache_filename')
         if cache_filename:
@@ -320,7 +328,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
           scopes: Scopes for the desired credentials.
         """
         # Credentials metadata dict.
-        scopes = sorted([six.ensure_text(scope) for scope in scopes])
+        scopes = sorted([_EnsureStr(scope) for scope in scopes])
         creds = {'scopes': scopes,
                  'svc_acct_name': self.__service_account_name}
         creds_str = json.dumps(creds)
@@ -356,7 +364,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
     def GetServiceAccount(self, account):
         relative_url = 'instance/service-accounts'
         response = _GceMetadataRequest(relative_url)
-        response_lines = [six.ensure_str(line).rstrip(u'/\n\r')
+        response_lines = [_EnsureStr(line).rstrip(u'/\n\r')
                           for line in response.readlines()]
         return account in response_lines
 
@@ -364,7 +372,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
         relative_url = 'instance/service-accounts/{0}/scopes'.format(
             self.__service_account_name)
         response = _GceMetadataRequest(relative_url)
-        return util.NormalizeScopes(six.ensure_str(scope).strip()
+        return util.NormalizeScopes(_EnsureStr(scope).strip()
                                     for scope in response.readlines())
 
     # pylint: disable=arguments-differ
@@ -397,7 +405,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
             if self.store:
                 self.store.locked_put(self)
             raise
-        content = six.ensure_str(response.read())
+        content = _EnsureStr(response.read())
         try:
             credential_info = json.loads(content)
         except ValueError:
@@ -535,7 +543,7 @@ def CredentialsFromFile(path, client_info, oauth2client_args=None):
     """Read credentials from a file."""
     user_agent = client_info['user_agent']
     scope_key = client_info['scope']
-    if not isinstance(scope_key, six.string_types):
+    if not isinstance(scope_key, str):
         scope_key = ':'.join(scope_key)
     storage_key = client_info['client_id'] + user_agent + scope_key
 
@@ -654,7 +662,7 @@ class _MultiProcessCacheFile(object):
         Returns:
           bool: success
         """
-        if isinstance(cache_data, six.text_type):
+        if isinstance(cache_data, str):
             cache_data = cache_data.encode(encoding=self._encoding)
 
         with self._thread_lock:

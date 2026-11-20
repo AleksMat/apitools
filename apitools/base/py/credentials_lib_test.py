@@ -13,14 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import io
 import json
 import os.path
 import shutil
 import tempfile
 import unittest
 from unittest import mock
-
-import six
+import urllib.request
 
 from apitools.base.py import credentials_lib
 from apitools.base.py import util
@@ -34,12 +34,12 @@ class MetadataMock(object):
 
     def __call__(self, request_url):
         if request_url.endswith('scopes'):
-            return six.StringIO(''.join(self._scopes))
+            return io.StringIO(''.join(self._scopes))
         elif request_url.endswith('service-accounts'):
-            return six.StringIO(self._sa)
+            return io.StringIO(self._sa)
         elif request_url.endswith(
                 '/service-accounts/%s/token' % self._sa):
-            return six.StringIO('{"access_token": "token"}')
+            return io.StringIO('{"access_token": "token"}')
         self.fail('Unexpected HTTP request to %s' % request_url)
 
 
@@ -132,8 +132,8 @@ class CredentialsLibTest(unittest.TestCase):
         creds = self._GetServiceCreds()
         opener = mock.MagicMock()
         opener.open = mock.MagicMock()
-        opener.open.return_value = six.StringIO('default/\nanother')
-        with mock.patch.object(six.moves.urllib.request, 'build_opener',
+        opener.open.return_value = io.StringIO('default/\nanother')
+        with mock.patch.object(urllib.request, 'build_opener',
                                return_value=opener,
                                autospec=True) as build_opener:
             creds.GetServiceAccount('default')

@@ -16,13 +16,12 @@
 """Various utilities used in tests."""
 
 import contextlib
+import io
 import os
 import shutil
 import sys
 import tempfile
 import unittest
-
-import six
 
 
 SkipOnWindows = unittest.skipIf(
@@ -46,7 +45,7 @@ def TempDir(change_to=False):
 
 @contextlib.contextmanager
 def CaptureOutput():
-    new_stdout, new_stderr = six.StringIO(), six.StringIO()
+    new_stdout, new_stderr = io.StringIO(), io.StringIO()
     old_stdout, old_stderr = sys.stdout, sys.stderr
     try:
         sys.stdout, sys.stderr = new_stdout, new_stderr

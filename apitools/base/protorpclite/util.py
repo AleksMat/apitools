@@ -24,8 +24,6 @@ import os
 import re
 import sys
 
-import six
-
 __all__ = [
     'Error',
     'decode_datetime',
@@ -144,7 +142,7 @@ def positional(max_positional_args):
             return wrapped(*args, **kwargs)
         return positional_wrapper
 
-    if isinstance(max_positional_args, six.integer_types):
+    if isinstance(max_positional_args, int):
         return positional_decorator
     else:
         args, _, _, defaults, *_ = inspect.getfullargspec(max_positional_args)
@@ -170,14 +168,14 @@ def get_package_for_module(module):
       Else, if module is not the '__main__' module, the module __name__.
       Else, the base name of the module file name.  Else None.
     """
-    if isinstance(module, six.string_types):
+    if isinstance(module, str):
         try:
             module = sys.modules[module]
         except KeyError:
             return None
 
     try:
-        return six.text_type(module.package)
+        return str(module.package)
     except AttributeError:
         if module.__name__ == '__main__':
             try:
@@ -188,10 +186,10 @@ def get_package_for_module(module):
                 base_name = os.path.basename(file_name)
                 split_name = os.path.splitext(base_name)
                 if len(split_name) == 1:
-                    return six.text_type(base_name)
+                    return str(base_name)
                 return u'.'.join(split_name[:-1])
 
-        return six.text_type(module.__name__)
+        return str(module.__name__)
 
 
 def total_seconds(offset):

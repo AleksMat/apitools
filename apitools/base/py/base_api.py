@@ -19,14 +19,10 @@
 import base64
 import contextlib
 import datetime
+from http import client as http_client
 import logging
 import pprint
-
-
-import six
-from six.moves import http_client
-from six.moves import urllib
-
+import urllib.parse
 
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
@@ -386,7 +382,7 @@ class BaseApiClient(object):
 
     @num_retries.setter
     def num_retries(self, value):
-        util.Typecheck(value, six.integer_types)
+        util.Typecheck(value, int)
         if value < 0:
             raise exceptions.InvalidDataError(
                 'Cannot have negative value for num_retries')
@@ -398,7 +394,7 @@ class BaseApiClient(object):
 
     @max_retry_wait.setter
     def max_retry_wait(self, value):
-        util.Typecheck(value, six.integer_types)
+        util.Typecheck(value, int)
         if value <= 0:
             raise exceptions.InvalidDataError(
                 'max_retry_wait must be a postiive integer')
@@ -501,7 +497,7 @@ class BaseApiService(object):
 
     @classmethod
     def GetMethodsList(cls):
-        return [f.__name__ for f in six.itervalues(cls.__dict__)
+        return [f.__name__ for f in cls.__dict__.values()
                 if getattr(f, 'method_config', None)]
 
     def GetUploadConfig(self, method):
@@ -545,9 +541,9 @@ class BaseApiService(object):
         """Encode value for the URL, using field to skip encoding for bytes."""
         if isinstance(field, messages.BytesField) and value is not None:
             return base64.urlsafe_b64encode(value)
-        elif isinstance(value, six.text_type):
+        elif isinstance(value, str):
             return value.encode('utf8')
-        elif isinstance(value, six.binary_type):
+        elif isinstance(value, bytes):
             return value.decode('utf8')
         elif isinstance(value, datetime.datetime):
             return value.isoformat()

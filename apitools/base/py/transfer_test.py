@@ -15,14 +15,14 @@
 # limitations under the License.
 
 """Tests for transfer.py."""
+from http import client as http_client
+import io
 import json
 import string
 import unittest
 from unittest import mock
 
 import httplib2
-import six
-from six.moves import http_client
 
 from apitools.base.py import base_api
 from apitools.base.py import exceptions
@@ -55,19 +55,19 @@ class TransferTest(unittest.TestCase):
         total_size = 100
         chunksize = 10
         download = transfer.Download.FromStream(
-            six.StringIO(), chunksize=chunksize, total_size=total_size)
+            io.StringIO(), chunksize=chunksize, total_size=total_size)
         self.assertEqual(chunksize - 1,
                          download._Download__ComputeEndByte(0, end=50))
 
     def testComputeEndByteReturnNone(self):
-        download = transfer.Download.FromStream(six.StringIO())
+        download = transfer.Download.FromStream(io.StringIO())
         self.assertIsNone(
             download._Download__ComputeEndByte(0, use_chunks=False))
 
     def testComputeEndByteNoChunks(self):
         total_size = 100
         download = transfer.Download.FromStream(
-            six.StringIO(), chunksize=10, total_size=total_size)
+            io.StringIO(), chunksize=10, total_size=total_size)
         for end in (None, 1000):
             self.assertEqual(
                 total_size - 1,
@@ -76,7 +76,7 @@ class TransferTest(unittest.TestCase):
                 msg='Failed on end={0}'.format(end))
 
     def testComputeEndByteNoTotal(self):
-        download = transfer.Download.FromStream(six.StringIO())
+        download = transfer.Download.FromStream(io.StringIO())
         default_chunksize = download.chunksize
         for chunksize in (100, default_chunksize):
             download.chunksize = chunksize
@@ -89,7 +89,7 @@ class TransferTest(unittest.TestCase):
 
     def testComputeEndByteSmallTotal(self):
         total_size = 100
-        download = transfer.Download.FromStream(six.StringIO(),
+        download = transfer.Download.FromStream(io.StringIO(),
                                                 total_size=total_size)
         for start in (0, 10):
             self.assertEqual(total_size - 1,
@@ -99,7 +99,7 @@ class TransferTest(unittest.TestCase):
     def testDownloadThenStream(self):
         bytes_http = object()
         http = object()
-        download_stream = six.StringIO()
+        download_stream = io.StringIO()
         download = transfer.Download.FromStream(download_stream,
                                                 total_size=26)
         download.bytes_http = bytes_http
@@ -140,7 +140,7 @@ class TransferTest(unittest.TestCase):
         for (start_byte, end_byte) in [(0, 25), (5, 15), (0, 0), (25, 25)]:
             bytes_http = object()
             http = object()
-            download_stream = six.StringIO()
+            download_stream = io.StringIO()
             download = transfer.Download.FromStream(download_stream,
                                                     total_size=26,
                                                     auto_transfer=False)
@@ -169,7 +169,7 @@ class TransferTest(unittest.TestCase):
     def testNonChunkedDownload(self):
         bytes_http = object()
         http = object()
-        download_stream = six.StringIO()
+        download_stream = io.StringIO()
         download = transfer.Download.FromStream(download_stream, total_size=52)
         download.bytes_http = bytes_http
         base_url = 'https://part.one/'
@@ -198,7 +198,7 @@ class TransferTest(unittest.TestCase):
     def testChunkedDownload(self):
         bytes_http = object()
         http = object()
-        download_stream = six.StringIO()
+        download_stream = io.StringIO()
         download = transfer.Download.FromStream(
             download_stream, chunksize=26, total_size=52)
         download.bytes_http = bytes_http
@@ -255,7 +255,7 @@ class TransferTest(unittest.TestCase):
             'total_size': 0,
             'url': 'url',
         })
-        transfer.Download.FromData(six.BytesIO(), fake_json_data,
+        transfer.Download.FromData(io.BytesIO(), fake_json_data,
                                    client=mock_client)
         mock_client.FinalizeTransferUrl.assert_called_once_with('url')
 
@@ -298,7 +298,7 @@ class TransferTest(unittest.TestCase):
             # Test multipart: having a body argument in http_request forces
             # multipart here.
             upload = transfer.Upload.FromStream(
-                six.BytesIO(upload_bytes),
+                io.BytesIO(upload_bytes),
                 'text/plain',
                 total_size=len(upload_bytes))
             http_request = http_wrapper.Request(
@@ -315,7 +315,7 @@ class TransferTest(unittest.TestCase):
             # Test non-multipart (aka media): no body argument means this is
             # sent as media.
             upload = transfer.Upload.FromStream(
-                six.BytesIO(upload_bytes),
+                io.BytesIO(upload_bytes),
                 'text/plain',
                 total_size=len(upload_bytes))
             http_request = http_wrapper.Request(
@@ -333,7 +333,7 @@ class UploadTest(unittest.TestCase):
         # Sample highly compressible data.
         self.sample_data = b'abc' * 200
         # Stream of the sample data.
-        self.sample_stream = six.BytesIO(self.sample_data)
+        self.sample_stream = io.BytesIO(self.sample_data)
         # Sample url_builder.
         self.url_builder = base_api._UrlBuilder('http://www.uploads.com')
         # Sample request.
@@ -467,7 +467,7 @@ class UploadTest(unittest.TestCase):
         # Ensure data is compressed
         self.assertLess(len(self.request.body), len(self.sample_data))
         # Ensure uncompressed data includes the sample data.
-        with gzip.GzipFile(fileobj=six.BytesIO(self.request.body)) as f:
+        with gzip.GzipFile(fileobj=io.BytesIO(self.request.body)) as f:
             original = f.read()
             self.assertTrue(self.sample_data in original)
 
@@ -495,7 +495,7 @@ class UploadTest(unittest.TestCase):
         # Ensure data is compressed
         self.assertLess(len(self.request.body), len(self.sample_data))
         # Ensure uncompressed data includes the sample data.
-        with gzip.GzipFile(fileobj=six.BytesIO(self.request.body)) as f:
+        with gzip.GzipFile(fileobj=io.BytesIO(self.request.body)) as f:
             original = f.read()
             self.assertTrue(self.sample_data in original)
 

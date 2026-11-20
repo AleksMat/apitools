@@ -17,8 +17,6 @@
 
 import unittest
 
-import six
-
 from apitools.base.py.testing import mock
 
 from samples.iam_sample.iam_v1 import iam_v1_client  # nopep8
@@ -37,7 +35,7 @@ class DnsGenClientSanityTest(unittest.TestCase):
     def testAttributes(self):
         inner_classes = set([])
         for key, value in iam_v1_client.IamV1.__dict__.items():
-            if isinstance(value, six.class_types):
+            if isinstance(value, type):
                 inner_classes.add(key)
         self.assertEqual(set([
             'IamPoliciesService',

@@ -20,8 +20,6 @@ import platform
 import types
 import unittest
 
-import six
-
 from apitools.base.protorpclite import descriptor
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
@@ -137,7 +135,7 @@ class DescribeFieldTest(test_util.TestCase):
             (messages.BooleanField, True, 'true'),
             (messages.BooleanField, False, 'false'),
             (messages.BytesField,
-             b''.join([six.int2byte(x) for x in (31, 32, 33)]),
+             bytes((31, 32, 33)),
              b'\\x1f !'),
             (messages.StringField, RUSSIA, RUSSIA),
         )

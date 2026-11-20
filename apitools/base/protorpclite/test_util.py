@@ -35,9 +35,6 @@ import socket
 import types
 import unittest
 
-import six
-from six.moves import range  # pylint: disable=redefined-builtin
-
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
 from apitools.base.protorpclite import util
@@ -46,7 +43,7 @@ from apitools.base.protorpclite import util
 RUSSIAN = u'\u0440\u0443\u0441\u0441\u043a\u0438\u0439'
 
 # All characters binary value interspersed with nulls.
-BINARY = b''.join(six.int2byte(value) + b'\0' for value in range(256))
+BINARY = b''.join(bytes([value]) + b'\0' for value in range(256))
 
 
 def _parse_header(header):

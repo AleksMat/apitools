@@ -16,23 +16,17 @@
 
 """Assorted utilities shared between parts of apitools."""
 
+from collections.abc import Iterable
+from http import client as http_client
 import os
 import random
-
-import six
-from six.moves import http_client
-import six.moves.urllib.error as urllib_error
-import six.moves.urllib.parse as urllib_parse
-import six.moves.urllib.request as urllib_request
+from urllib import error as urllib_error
+from urllib import parse as urllib_parse
+from urllib import request as urllib_request
 
 from apitools.base.protorpclite import messages
 from apitools.base.py import encoding_helper as encoding
 from apitools.base.py import exceptions
-
-if six.PY3:
-    from collections.abc import Iterable
-else:
-    from collections import Iterable
 
 __all__ = [
     'DetectGae',
@@ -77,14 +71,20 @@ def DetectGce():
             o.headers.get('metadata-flavor') == 'Google')
 
 
+def _EnsureStr(value):
+    if isinstance(value, bytes):
+        return value.decode('utf-8')
+    if isinstance(value, str):
+        return value
+    raise TypeError("not expecting type '%s'" % type(value))
+
+
 def NormalizeScopes(scope_spec):
     """Normalize scope_spec to a set of strings."""
-    if isinstance(scope_spec, six.string_types):
-        scope_spec = six.ensure_str(scope_spec)
+    if isinstance(scope_spec, str):
         return set(scope_spec.split(' '))
     elif isinstance(scope_spec, Iterable):
-        scope_spec = [six.ensure_str(x) for x in scope_spec]
-        return set(scope_spec)
+        return set(_EnsureStr(x) for x in scope_spec)
     raise exceptions.TypecheckError(
         'NormalizeScopes expected string or iterable, found %s' % (
             type(scope_spec),))
@@ -129,7 +129,7 @@ def ExpandRelativePath(method_config, params, relative_path=None):
             raise exceptions.InvalidUserInputError(
                 'Request missing required parameter %s' % param)
         try:
-            if not isinstance(value, six.string_types):
+            if not isinstance(value, str):
                 value = str(value)
             path = path.replace(param_template,
                                 urllib_parse.quote(value.encode('utf_8'),

@@ -21,8 +21,6 @@ import sys
 import types
 import unittest
 
-import six
-
 from apitools.base.protorpclite import test_util
 from apitools.base.protorpclite import util
 
@@ -129,7 +127,7 @@ class GetPackageForModuleTest(test_util.TestCase):
     def assertPackageEquals(self, expected, actual):
         self.assertEqual(expected, actual)
         if actual is not None:
-            self.assertTrue(isinstance(actual, six.text_type))
+            self.assertTrue(isinstance(actual, str))
 
     def testByString(self):
         module = self.CreateModule('service_module')

@@ -21,14 +21,12 @@ import email.generator as generator
 import email.mime.multipart as mime_multipart
 import email.mime.nonmultipart as mime_nonmultipart
 import email.parser as email_parser
+from http import client as http_client
+import io
 import itertools
 import time
+from urllib import parse as urllib_parse
 import uuid
-
-import six
-from six.moves import http_client
-from six.moves import urllib_parse
-from six.moves import range  # pylint: disable=redefined-builtin
 
 from apitools.base.py import exceptions
 from apitools.base.py import http_wrapper
@@ -329,7 +327,7 @@ class BatchHttpRequest(object):
         parsed = urllib_parse.urlsplit(request.url)
         request_line = urllib_parse.urlunsplit(
             ('', '', parsed.path, parsed.query, ''))
-        if not isinstance(request_line, six.text_type):
+        if not isinstance(request_line, str):
             request_line = request_line.decode('utf-8')
         status_line = u' '.join((
             request.http_method,
@@ -354,7 +352,7 @@ class BatchHttpRequest(object):
             msg.set_payload(request.body)
 
         # Serialize the mime message.
-        str_io = six.StringIO()
+        str_io = io.StringIO()
         # maxheaderlen=0 means don't line wrap headers.
         gen = generator.Generator(str_io, maxheaderlen=0)
         gen.flatten(msg, unixfrom=False)

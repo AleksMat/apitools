@@ -18,7 +18,6 @@
 import unittest
 
 import httplib2
-import six
 
 from apitools.base.protorpclite import messages
 
@@ -34,7 +33,7 @@ from samples.fusiontables_sample.fusiontables_v1 import \
 def _GetApiServices(api_client_class):
     return dict(
         (name, potential_service)
-        for name, potential_service in six.iteritems(api_client_class.__dict__)
+        for name, potential_service in api_client_class.__dict__.items()
         if (isinstance(potential_service, type) and
             issubclass(potential_service, base_api.BaseApiService)))
 
@@ -231,7 +230,7 @@ class MockTest(unittest.TestCase):
         with mock.Client(fusiontables.FusiontablesV1):
             mocked_services = _GetApiServices(fusiontables.FusiontablesV1)
             self.assertEqual(services.keys(), mocked_services.keys())
-            for name, service in six.iteritems(services):
+            for name, service in services.items():
                 mocked_service = mocked_services[name]
                 methods = service.GetMethodsList()
                 for method in methods:

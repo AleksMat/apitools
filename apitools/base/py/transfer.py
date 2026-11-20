@@ -15,19 +15,16 @@
 # limitations under the License.
 
 """Upload and download support for apitools."""
-from __future__ import print_function
 
 import email.generator as email_generator
 import email.mime.multipart as mime_multipart
 import email.mime.nonmultipart as mime_nonmultipart
+from http import client as http_client
 import io
 import json
 import mimetypes
 import os
 import threading
-
-import six
-from six.moves import http_client
 
 from apitools.base.py import buffered_stream
 from apitools.base.py import compression
@@ -121,7 +118,7 @@ class _Transfer(object):
 
     @num_retries.setter
     def num_retries(self, value):
-        util.Typecheck(value, six.integer_types)
+        util.Typecheck(value, int)
         if value < 0:
             raise exceptions.InvalidDataError(
                 'Cannot have negative value for num_retries')
@@ -431,10 +428,15 @@ class Download(_Transfer):
                 raise exceptions.TransferRetryError(response.content)
         if response.status_code in (http_client.OK,
                                     http_client.PARTIAL_CONTENT):
+            content = response.content
             try:
-                self.stream.write(six.ensure_binary(response.content))
+                self.stream.write(
+                    content.encode('utf-8') if isinstance(content, str)
+                    else content)
             except TypeError:
-                self.stream.write(six.ensure_text(response.content))
+                self.stream.write(
+                    content.decode('utf-8') if isinstance(content, bytes)
+                    else content)
             self.__progress += response.length
             if response.info and 'content-encoding' in response.info:
                 # TODO(craigcitro): Handle the case where this changes over a
@@ -549,27 +551,26 @@ class Download(_Transfer):
         self._ExecuteCallback(finish_callback, response)
 
 
-if six.PY3:
-    class MultipartBytesGenerator(email_generator.BytesGenerator):
-        """Generates a bytes Message object tree for multipart messages
+class MultipartBytesGenerator(email_generator.BytesGenerator):
+    """Generates a bytes Message object tree for multipart messages
 
-        This is a BytesGenerator that has been modified to not attempt line
-        termination character modification in the bytes payload. Known to
-        work with the compat32 policy only. It may work on others, but not
-        tested. The outfp object must accept bytes in its write method.
-        """
-        def _handle_text(self, msg):
-            # If the string has surrogates the original source was bytes, so
-            # just write it back out.
-            if msg._payload is None:
-                return
-            self.write(msg._payload)
+    This is a BytesGenerator that has been modified to not attempt line
+    termination character modification in the bytes payload. Known to
+    work with the compat32 policy only. It may work on others, but not
+    tested. The outfp object must accept bytes in its write method.
+    """
+    def _handle_text(self, msg):
+        # If the string has surrogates the original source was bytes, so
+        # just write it back out.
+        if msg._payload is None:
+            return
+        self.write(msg._payload)
 
-        def _encode(self, s):
-            return s.encode('ascii', 'surrogateescape')
+    def _encode(self, s):
+        return s.encode('ascii', 'surrogateescape')
 
-        # Default body handler
-        _writeBody = _handle_text
+    # Default body handler
+    _writeBody = _handle_text
 
 
 class Upload(_Transfer):
@@ -793,7 +794,7 @@ class Upload(_Transfer):
                 # bytes container.
                 http_request.body = (
                     compression.CompressStream(
-                        six.BytesIO(http_request.body))[0].read())
+                        io.BytesIO(http_request.body))[0].read())
         else:
             url_builder.relative_path = upload_config.resumable_path
             url_builder.query_params['uploadType'] = 'resumable'
@@ -827,19 +828,15 @@ class Upload(_Transfer):
         # NOTE: We encode the body, but can't use
         #       `email.message.Message.as_string` because it prepends
         #       `> ` to `From ` lines.
-        fp = six.BytesIO()
-        if six.PY3:
-            generator_class = MultipartBytesGenerator
-        else:
-            generator_class = email_generator.Generator
-        g = generator_class(fp, mangle_from_=False)
+        fp = io.BytesIO()
+        g = MultipartBytesGenerator(fp, mangle_from_=False)
         g.flatten(msg_root, unixfrom=False)
         http_request.body = fp.getvalue()
 
         multipart_boundary = msg_root.get_boundary()
         http_request.headers['content-type'] = (
             'multipart/related; boundary=%r' % multipart_boundary)
-        if isinstance(multipart_boundary, six.text_type):
+        if isinstance(multipart_boundary, str):
             multipart_boundary = multipart_boundary.encode('ascii')
 
         body_components = http_request.body.split(multipart_boundary)

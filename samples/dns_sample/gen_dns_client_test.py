@@ -17,8 +17,6 @@
 
 import unittest
 
-import six
-
 from apitools.base.py import list_pager
 from apitools.base.py.testing import mock
 
@@ -38,7 +36,7 @@ class DnsGenClientSanityTest(unittest.TestCase):
     def testAttributes(self):
         inner_classes = set([])
         for key, value in dns_v1_client.DnsV1.__dict__.items():
-            if isinstance(value, six.class_types):
+            if isinstance(value, type):
                 inner_classes.add(key)
         self.assertEqual(set([
             'ChangesService',

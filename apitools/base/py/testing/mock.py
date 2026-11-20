@@ -25,8 +25,6 @@ as it's all done within the context of a mock.
 import difflib
 import sys
 
-import six
-
 from apitools.base.protorpclite import messages
 from apitools.base.py import base_api
 from apitools.base.py import encoding
@@ -377,7 +375,7 @@ class Client(object):
         is_active_exception = value is not None
         self.Unmock(suppress=is_active_exception)
         if is_active_exception:
-            six.reraise(exc_type, value, traceback)
+            raise value.with_traceback(traceback)
         return True
 
     def Unmock(self, suppress=False):

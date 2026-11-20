@@ -22,8 +22,7 @@ import os
 import tempfile
 import unittest
 from unittest import mock
-
-import six.moves.urllib.request as urllib_request
+from urllib import request as urllib_request
 
 from apitools.gen import util
 

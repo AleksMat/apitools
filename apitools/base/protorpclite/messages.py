@@ -43,11 +43,13 @@ Public Exceptions (indentation indications class hierarchy):
   DefinitionNotFoundError: Raised when definition not found.
 """
 import types
+import typing
 import weakref
 
-import six
-
 from apitools.base.protorpclite import util
+
+if typing.TYPE_CHECKING:
+    import enum
 
 __all__ = [
     'MAX_ENUM_VALUE',
@@ -250,7 +252,7 @@ class _DefinitionClass(type):
         """
         outer_definition_name = cls.outer_definition_name()
         if outer_definition_name is None:
-            return six.text_type(cls.__name__)
+            return str(cls.__name__)
         return u'%s.%s' % (outer_definition_name, cls.__name__)
 
     def outer_definition_name(cls):
@@ -278,7 +280,14 @@ class _DefinitionClass(type):
         return outer_definition.definition_package()
 
 
-class _EnumClass(_DefinitionClass):
+if typing.TYPE_CHECKING:
+    class _EnumClassBase(_DefinitionClass, enum.EnumType):
+        pass
+else:
+    _EnumClassBase = _DefinitionClass
+
+
+class _EnumClass(_EnumClassBase):
     """Meta-class used for defining the Enum base class.
 
     Meta-class enables very specific behavior for any defined Enum
@@ -315,7 +324,7 @@ class _EnumClass(_DefinitionClass):
                     continue
 
                 # Reject anything that is not an int.
-                if not isinstance(value, six.integer_types):
+                if not isinstance(value, int):
                     raise EnumDefinitionError(
                         'May only use integers in Enum definitions.  '
                         'Found: %s = %s' %
@@ -399,7 +408,7 @@ class _EnumClass(_DefinitionClass):
         return len(cls.__by_name)
 
 
-class Enum(six.with_metaclass(_EnumClass, object)):
+class Enum(object, metaclass=_EnumClass):
     """Base class for all enumerated types."""
 
     __slots__ = set(('name', 'number'))
@@ -424,14 +433,14 @@ class Enum(six.with_metaclass(_EnumClass, object)):
             return index
 
         # If number, look up by number.
-        if isinstance(index, six.integer_types):
+        if isinstance(index, int):
             try:
                 return cls.lookup_by_number(index)
             except KeyError:
                 pass
 
         # If name, look up by name.
-        if isinstance(index, six.string_types):
+        if isinstance(index, str):
             try:
                 return cls.lookup_by_name(index)
             except KeyError:
@@ -451,6 +460,9 @@ class Enum(six.with_metaclass(_EnumClass, object)):
         # is being used.
         if getattr(type(self), '_DefinitionClass__initialized'):
             return
+        if typing.TYPE_CHECKING:
+            self.name: str
+            self.number: int
         object.__setattr__(self, 'name', name)
         object.__setattr__(self, 'number', number)
 
@@ -689,7 +701,7 @@ class _MessageClass(_DefinitionClass):
         _DefinitionClass.__init__(cls, name, bases, dct)
 
 
-class Message(six.with_metaclass(_MessageClass, object)):
+class Message(object, metaclass=_MessageClass):
     """Base class for user defined message objects.
 
     Used to define messages for efficient transmission across network or
@@ -1164,7 +1176,7 @@ class _FieldMeta(type):
 
 
 # TODO(rafek): Prevent additional field subclasses.
-class Field(six.with_metaclass(_FieldMeta, object)):
+class Field(metaclass=_FieldMeta):
     """Definition for message field."""
 
     __initialized = False  # pylint:disable=invalid-name
@@ -1322,7 +1334,7 @@ class Field(six.with_metaclass(_FieldMeta, object)):
         if not isinstance(value, self.type):
 
             # Authorize int values as float.
-            if isinstance(value, six.integer_types) and self.type == float:
+            if isinstance(value, int) and self.type == float:
                 return float(value)
 
             if value is None:
@@ -1473,7 +1485,7 @@ class IntegerField(Field):
 
     DEFAULT_VARIANT = Variant.INT64
 
-    type = six.integer_types
+    type = int
 
 
 class FloatField(Field):
@@ -1516,7 +1528,7 @@ class StringField(Field):
 
     DEFAULT_VARIANT = Variant.STRING
 
-    type = six.text_type
+    type = str
 
     def validate_element(self, value):
         """Validate StringField allowing for str and unicode.
@@ -1527,7 +1539,7 @@ class StringField(Field):
         # If value is str is it considered valid.  Satisfies "required=True".
         if isinstance(value, bytes):
             try:
-                six.text_type(value, 'UTF-8')
+                str(value, 'UTF-8')
             except UnicodeDecodeError as err:
                 try:
                     _ = self.name
@@ -1616,7 +1628,7 @@ class MessageField(Field):
         Raises:
           FieldDefinitionError when invalid message_type is provided.
         """
-        valid_type = (isinstance(message_type, six.string_types) or
+        valid_type = (isinstance(message_type, str) or
                       (message_type is not Message and
                        isinstance(message_type, type) and
                        issubclass(message_type, Message)))
@@ -1625,7 +1637,7 @@ class MessageField(Field):
             raise FieldDefinitionError(
                 'Invalid message class: %s' % message_type)
 
-        if isinstance(message_type, six.string_types):
+        if isinstance(message_type, str):
             self.__type_name = message_type
             self.__type = None
         else:
@@ -1769,7 +1781,7 @@ class EnumField(Field):
         Raises:
           FieldDefinitionError when invalid enum_type is provided.
         """
-        valid_type = (isinstance(enum_type, six.string_types) or
+        valid_type = (isinstance(enum_type, str) or
                       (enum_type is not Enum and
                        isinstance(enum_type, type) and
                        issubclass(enum_type, Enum)))
@@ -1777,7 +1789,7 @@ class EnumField(Field):
         if not valid_type:
             raise FieldDefinitionError('Invalid enum type: %s' % enum_type)
 
-        if isinstance(enum_type, six.string_types):
+        if isinstance(enum_type, str):
             self.__type_name = enum_type
             self.__type = None
         else:
@@ -1801,7 +1813,7 @@ class EnumField(Field):
           ValidationError if value is not expected message type.
 
         """
-        if isinstance(value, (six.string_types, six.integer_types)):
+        if isinstance(value, (str, int)):
             # Validation of the value does not happen for delayed resolution
             # enumerated types.  Ignore if type is not yet resolved.
             if self.__type:
@@ -1835,8 +1847,7 @@ class EnumField(Field):
             return self.__resolved_default
         except AttributeError:
             resolved_default = super(EnumField, self).default
-            if isinstance(resolved_default, (six.string_types,
-                                             six.integer_types)):
+            if isinstance(resolved_default, (str, int)):
                 # pylint:disable=not-callable
                 resolved_default = self.type(resolved_default)
             self.__resolved_default = resolved_default
